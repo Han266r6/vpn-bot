@@ -26,7 +26,6 @@ def keep_alive():
 
 
 # ==================== ESASY SAZLAMALAR ====================
-# AŞAKDAKY ÝERE BOTFATHER-DEN ALAN TÄZE TOKENIŇIZI ÝAZYŇ:
 TELEGRAM_TOKEN = '8862361317:AAG8NDX_Z1LKg0pbyfozcW0Cc0WiVFJSV80'
 ADMIN_ID = 6640701495
 ADMIN_USERNAME = 'Jordiiin7'
@@ -74,16 +73,16 @@ admin_state = {}
 def get_main_keyboard(user_id):
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
-  btn_buy = types.KeyboardButton('🛒 Açar satyn al')
-  btn_free = types.KeyboardButton('🎁 Mugt açarlar / Proxy')
+  btn_proxy = types.KeyboardButton('⚡️ Telegram MTProto Proxylar')
+  btn_free = types.KeyboardButton('🎁 Mugt Açarlar (Free)')
+  btn_buy = types.KeyboardButton('💳 VIP VPN Satyn al')
   btn_keys = types.KeyboardButton('🔑 Açarlarym')
-  btn_balance = types.KeyboardButton('💰 Balans')
   btn_profile = types.KeyboardButton('👤 Profil')
-  btn_help = types.KeyboardButton('📖 Nädip birikmeli')
-  btn_support = types.KeyboardButton('💬 Goldaw')
+  btn_help = types.KeyboardButton('📖 Nädip birikmeli?')
+  btn_support = types.KeyboardButton('💬 Goldaw / Admin')
 
-  markup.add(btn_buy, btn_free)
-  markup.add(btn_keys, btn_balance)
+  markup.add(btn_proxy, btn_free)
+  markup.add(btn_buy, btn_keys)
   markup.add(btn_profile, btn_help)
   markup.add(btn_support)
 
@@ -155,6 +154,12 @@ def open_admin_panel(chat_id):
           '🗑 Mugt açarlary boz', callback_data='adm_clear_free'
       ),
       types.InlineKeyboardButton(
+          '🛡 Proxy goş', callback_data='adm_add_proxy'
+      ),
+      types.InlineKeyboardButton(
+          '🗑 Proxylary boz', callback_data='adm_clear_proxy'
+      ),
+      types.InlineKeyboardButton(
           '📊 Baza hasabaty', callback_data='adm_stats'
       ),
   )
@@ -187,20 +192,57 @@ def handle_text_messages(message):
         )
         return
       elif state == 'WAIT_ADD_FREE':
-        if text.startswith('https://t.me/proxy'):
-          free_resources['mtproto_proxy'].append(text)
-          bot.send_message(
-              message.chat.id, '✅ Täze Telegram MTProto proxy goşuldy!'
-          )
-        else:
-          free_resources['free_vpn'].append(text)
-          bot.send_message(
-              message.chat.id, '✅ Täze mugt synag açary goşuldy!'
-          )
+        free_resources['free_vpn'].append(text)
         del admin_state[user_id]
+        bot.send_message(
+            message.chat.id, '✅ Täze mugt synag açary goşuldy!'
+        )
+        return
+      elif state == 'WAIT_ADD_PROXY':
+        free_resources['mtproto_proxy'].append(text)
+        del admin_state[user_id]
+        bot.send_message(
+            message.chat.id, '✅ Täze Telegram MTProto proxy goşuldy!'
+        )
         return
 
-    if text == '🛒 Açar satyn al':
+    if text == '⚡️ Telegram MTProto Proxylar':
+      if free_resources['mtproto_proxy']:
+        proxy_url = free_resources['mtproto_proxy'][0]
+        markup = types.InlineKeyboardMarkup()
+        markup.add(
+            types.InlineKeyboardButton('⚡️ Proxy-ni Birikdir', url=proxy_url)
+        )
+        bot.send_message(
+            message.chat.id,
+            '🛡 <b>Telegram üçin Mugt MTProto Proxy:</b>\n\nAşakdaky düwmä'
+            ' basyp göni birigiň:',
+            parse_mode='HTML',
+            reply_markup=markup,
+        )
+      else:
+        bot.send_message(
+            message.chat.id,
+            '😔 Häzirki wagtda mugt proxy ýok.',
+            parse_mode='HTML',
+        )
+
+    elif text == '🎁 Mugt Açarlar (Free)':
+      if free_resources['free_vpn']:
+        key = free_resources['free_vpn'][0]
+        msg = (
+            '🎁 <b>Mugt Synag VPN Açaryňyz:</b>\n\n'
+            f'<code>{html.escape(key)}</code>\n\n'
+            '<i>(Göçürip almak üçin açaryň üstüne basyň)</i>'
+        )
+      else:
+        msg = (
+            '😔 Häzirki wagtda elýeterli mugt açar ýok. Soňrak synanyşyp'
+            ' görüň!'
+        )
+      bot.send_message(message.chat.id, msg, parse_mode='HTML')
+
+    elif text == '💳 VIP VPN Satyn al':
       markup = types.InlineKeyboardMarkup(row_width=1)
       markup.add(
           types.InlineKeyboardButton(
@@ -220,38 +262,11 @@ def handle_text_messages(message):
           reply_markup=markup,
       )
 
-    elif text == '🎁 Mugt açarlar / Proxy':
-      markup = types.InlineKeyboardMarkup(row_width=1)
-      markup.add(
-          types.InlineKeyboardButton(
-              '🚀 Mugt Synag VPN Açary', callback_data='get_free_vpn'
-          ),
-          types.InlineKeyboardButton(
-              '🛡 Telegram MTProto Proxy', callback_data='get_free_proxy'
-          ),
-      )
-      bot.send_message(
-          message.chat.id,
-          '🎁 <b>Mugt Barlag Bölümi:</b>\n\n'
-          'Serwerlerimizi ilki barlap görmek üçin ashakdakylardan birini'
-          ' saýlaň:',
-          parse_mode='HTML',
-          reply_markup=markup,
-      )
-
     elif text == '🔑 Açarlarym':
       bot.send_message(
           message.chat.id,
           '🔑 <b>Meniň Açarlarym:</b>\n\nSizde häzirki wagtda satyn alnan'
           ' işjeň açar ýok.',
-          parse_mode='HTML',
-      )
-
-    elif text == '💰 Balans':
-      bot.send_message(
-          message.chat.id,
-          '💰 <b>Siziň Balansyňyz:</b> <code>0.00 TMT</code>\n\nBalansy'
-          ' doldurmak üçin admina ýüz tutuň.',
           parse_mode='HTML',
       )
 
@@ -267,7 +282,7 @@ def handle_text_messages(message):
       )
       bot.send_message(message.chat.id, profile_text, parse_mode='HTML')
 
-    elif text == '📖 Nädip birikmeli':
+    elif text == '📖 Nädip birikmeli?':
       guide_text = (
           '📖 <b>Nädip birikmeli we ulanmaly?</b>\n\n'
           '1. Telefonyňyza <b>v2rayNG</b> (Android) ýa-da <b>Streisand /'
@@ -279,7 +294,7 @@ def handle_text_messages(message):
       )
       bot.send_message(message.chat.id, guide_text, parse_mode='HTML')
 
-    elif text == '💬 Goldaw':
+    elif text == '💬 Goldaw / Admin':
       markup = types.InlineKeyboardMarkup()
       markup.add(
           types.InlineKeyboardButton(
@@ -312,43 +327,7 @@ def callback_handler(call):
     user_id = call.from_user.id
     data = call.data
 
-    if data == 'get_free_vpn':
-      if free_resources['free_vpn']:
-        key = free_resources['free_vpn'][0]
-        msg = (
-            '🎁 <b>Mugt Synag VPN Açaryňyz:</b>\n\n'
-            f'<code>{html.escape(key)}</code>\n\n'
-            '<i>(Göçürip almak üçin açaryň üstüne basyň)</i>'
-        )
-      else:
-        msg = (
-            '😔 Häzirki wagtda elýeterli mugt açar ýok. Soňrak synanyşyp'
-            ' görüň!'
-        )
-      bot.send_message(call.message.chat.id, msg, parse_mode='HTML')
-      bot.answer_callback_query(call.id)
-
-    elif data == 'get_free_proxy':
-      if free_resources['mtproto_proxy']:
-        proxy_url = free_resources['mtproto_proxy'][0]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(
-            types.InlineKeyboardButton('⚡️ Proxy-ni Birikdir', url=proxy_url)
-        )
-        bot.send_message(
-            call.message.chat.id,
-            '🛡 <b>Telegram üçin Mugt MTProto Proxy:</b>\n\nAşakdaky düwmä'
-            ' basyp göni birigiň:',
-
-            reply_markup=markup,
-        )
-      else:
-        bot.send_message(
-            call.message.chat.id, '😔 Häzirki wagtda mugt proxy ýok.'
-        )
-      bot.answer_callback_query(call.id)
-
-    elif data in ['buy_1m', 'buy_3m']:
+    if data in ['buy_1m', 'buy_3m']:
       bot.send_message(
           call.message.chat.id,
           '💳 Töleg etmek we açary almak üçin administratora ýazyň:'
@@ -379,16 +358,29 @@ def callback_handler(call):
         admin_state[user_id] = 'WAIT_ADD_FREE'
         bot.send_message(
             call.message.chat.id,
-            '📝 Täze mugt açary (vless://...) ýa-da MTProto proxy linkini'
-            ' (https://t.me/proxy?...) şu ýere ugradyň:',
+            '📝 Täze mugt açary (vless://...) şu ýere ugradyň:',
         )
         bot.answer_callback_query(call.id)
 
       elif data == 'adm_clear_free':
         free_resources['free_vpn'] = []
+        bot.send_message(
+            call.message.chat.id, '🗑 Ähli mugt açarlar pozuldy!'
+        )
+        bot.answer_callback_query(call.id)
+
+      elif data == 'adm_add_proxy':
+        admin_state[user_id] = 'WAIT_ADD_PROXY'
+        bot.send_message(
+            call.message.chat.id,
+            '📝 Täze MTProto proxy linkini (https://t.me/proxy?...) ugradyň:',
+        )
+        bot.answer_callback_query(call.id)
+
+      elif data == 'adm_clear_proxy':
         free_resources['mtproto_proxy'] = []
         bot.send_message(
-            call.message.chat.id, '🗑 Ähli mugt açarlar we proksiler pozuldy!'
+            call.message.chat.id, '🗑 Ähli MTProto proksiler pozuldy!'
         )
         bot.answer_callback_query(call.id)
 
@@ -415,7 +407,7 @@ def callback_handler(call):
 # ==================== BOTY DURNUKLY IŞLETMEK ====================
 if __name__ == '__main__':
   print('==================================================')
-  print('🚀 Bot üstünlikli işläp başlady (Türkmen dilinde)!')
+  print('🚀 Bot üstünlikli işläp başlady!')
   print('==================================================')
 
   keep_alive()
