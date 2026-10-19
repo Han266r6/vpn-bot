@@ -5,7 +5,7 @@ import telebot
 from telebot import types
 
 # ==================== ESASY SAZLAMALAR (TÄZE TOKEN) ====================
-TELEGRAM_TOKEN = '8862361317:AAG8NDX_Z1LKg0pbyfozcW0Cc0WiVFJSV80'
+TELEGRAM_TOKEN = '8862361317:AAGUhm7vgKwt2K6c680pcN4CKh0sAoOEwcM'
 ADMIN_ID = 6640701495
 ADMIN_USERNAME = 'Jordiiin7'
 
