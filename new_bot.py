@@ -1,6 +1,7 @@
 import html
 import os
 from threading import Thread
+import time
 from flask import Flask
 import telebot
 from telebot import types
@@ -416,14 +417,23 @@ if __name__ == '__main__':
   print('Flask keep_alive (24/7 Web Server) işe girizildi...')
   print('==================================================')
 
-  # Web serveri açýarys
+  # 1. Запуск веб-сервера
   keep_alive()
 
-  # Öňki galan päsgel berýän session/webhook-lary arassalaýar
-  try:
-    bot.remove_webhook()
-  except Exception as e:
-    print(f'Webhook arassalandy: {e}')
+  # 2. Бесконечный цикл защиты от падений
+  while True:
+    try:
+      try:
+        bot.remove_webhook()
+      except Exception as e:
+        print(f'Webhook info: {e}')
 
-  # Boty bökdençsiz işlediýäris
-  bot.infinity_polling(timeout=20, long_polling_timeout=10, skip_pending=True)
+      print('🟢 Bot Telegram API bilen birikdirilýär...')
+      bot.infinity_polling(
+          timeout=20, long_polling_timeout=10, skip_pending=True
+      )
+    except Exception as e:
+      print(
+          f'⚠️ Ýalňyşlyk ýüze çykdy ({e}). 3 sekuntdan täzeden barlanýar...'
+      )
+      time.sleep(3)
