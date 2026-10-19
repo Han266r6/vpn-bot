@@ -26,7 +26,8 @@ def keep_alive():
 
 
 # ==================== ESASY SAZLAMALAR ====================
-TELEGRAM_TOKEN = '8862361317:AAG3eBmVIc-Is1z8wBtx1VAsIRiScFkartw'
+# AŞAKDAKY ÝERE BOTFATHER-DEN ALAN TÄZE TOKENIŇIZI ÝAZYŇ:
+TELEGRAM_TOKEN = '8862361317:AAG8NDX_Z1LKg0pbyfozcW0Cc0WiVFJSV80'
 ADMIN_ID = 6640701495
 ADMIN_USERNAME = 'Jordiiin7'
 
@@ -232,7 +233,7 @@ def handle_text_messages(message):
       bot.send_message(
           message.chat.id,
           '🎁 <b>Mugt Barlag Bölümi:</b>\n\n'
-          'Serwerlerimizi ilki barlap görmek üçin aşakdakylardan birini'
+          'Serwerlerimizi ilki barlap görmek üçin ashakdakylardan birini'
           ' saýlaň:',
           parse_mode='HTML',
           reply_markup=markup,
@@ -338,6 +339,7 @@ def callback_handler(call):
             call.message.chat.id,
             '🛡 <b>Telegram üçin Mugt MTProto Proxy:</b>\n\nAşakdaky düwmä'
             ' basyp göni birigiň:',
+
             reply_markup=markup,
         )
       else:
@@ -416,14 +418,11 @@ if __name__ == '__main__':
   print('🚀 Bot üstünlikli işläp başlady (Türkmen dilinde)!')
   print('==================================================')
 
-  # Render serweri üçin port ugratmak
   keep_alive()
 
-  # Konflikt ýalňyşlyklarynyň öňüni alyş
   try:
     bot.remove_webhook()
   except Exception as e:
     print(f'Webhook arassalandy: {e}')
 
-  # Siziň original infinity_polling funksiýaňyz
   bot.infinity_polling(timeout=20, long_polling_timeout=10, skip_pending=True)
