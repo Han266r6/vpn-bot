@@ -1,36 +1,19 @@
 import html
 import os
-from threading import Thread
-from flask import Flask
+from flask import Flask, abort, request
 import telebot
 from telebot import types
 
-# ==================== RENDER SLEEP MODE ÖŇÜNI ALYŞ (FLASK SERVER) ====================
-app = Flask('')
-
-
-@app.route('/')
-def home():
-  return 'Bot 24/7 işjeň ýagdaýda!'
-
-
-def run():
-  port = int(os.environ.get('PORT', 8080))
-  app.run(host='0.0.0.0', port=port)
-
-
-def keep_alive():
-  t = Thread(target=run)
-  t.daemon = True
-  t.start()
-
-
-# ==================== ESASY SAZLAMALAR ====================
+# ==================== ESASY SAZLAMALAR (TÄZE TOKEN) ====================
 TELEGRAM_TOKEN = '8862361317:AAG8NDX_Z1LKg0pbyfozcW0Cc0WiVFJSV80'
 ADMIN_ID = 6640701495
 ADMIN_USERNAME = 'Jordiiin7'
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
+app = Flask('')
+
+# Render-iň berýän URL-ini awtomatiki alýar
+RENDER_URL = os.environ.get('RENDER_EXTERNAL_URL')
 
 # Satlyk VPN açarlaryň gory
 vpn_keys_stock = {
@@ -66,6 +49,25 @@ free_resources = {
 }
 
 admin_state = {}
+
+# ==================== FLASK SERVER WE WEBHOOK ROUTE ====================
+
+
+@app.route('/')
+def home():
+  return 'Bot 24/7 Webhook rejiminde durnukly işleýär!'
+
+
+@app.route(f'/{TELEGRAM_TOKEN}', methods=['POST'])
+def webhook():
+  if request.headers.get('content-type') == 'application/json':
+    json_string = request.get_data().decode('utf-8')
+    update = types.Update.de_json(json_string)
+    bot.process_new_updates([update])
+    return '', 200
+  else:
+    abort(403)
+
 
 # ==================== BAŞ MENÝU (DÜWMELER) ====================
 
@@ -404,17 +406,19 @@ def callback_handler(call):
     print(f'❌ Ýalňyşlyk callback-de: {e}')
 
 
-# ==================== BOTY DURNUKLY IŞLETMEK ====================
+# ==================== SERWERI IŞLEDIP BAŞLAMAK ====================
 if __name__ == '__main__':
   print('==================================================')
-  print('🚀 Bot üstünlikli işläp başlady!')
+  print('🚀 Bot Webhook rejiminde işe girizilýär...')
   print('==================================================')
 
-  keep_alive()
-
-  try:
+  if RENDER_URL:
+    webhook_url = f'{RENDER_URL}/{TELEGRAM_TOKEN}'
     bot.remove_webhook()
-  except Exception as e:
-    print(f'Webhook arassalandy: {e}')
+    bot.set_webhook(url=webhook_url)
+    print(f'✅ Webhook üstünlikli guruldy: {webhook_url}')
+  else:
+    print('⚠️ RENDER_EXTERNAL_URL tapylmady, ýöne serwer adaty açylýar...')
 
-  bot.infinity_polling(timeout=20, long_polling_timeout=10, skip_pending=True)
+  port = int(os.environ.get('PORT', 8080))
+  app.run(host='0.0.0.0', port=port)
